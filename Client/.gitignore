@@ -1,0 +1,35 @@
+Library/
+Temp/
+Builds/
+.vs/
+Assets/TouchScript/Examples/
+Assets/TouchScript/**/*.dll
+
+ExportedObj/
+obj/
+*.svd
+*.userprefs
+*.csproj
+*.pidb
+*.suo
+*.sln
+*.user
+*.unityproj
+*.booproj
+*.sdf
+*.VC.opendb
+
+Build/
+
+*.exe
+*.pdb
+
+
+#google abmob and firebase plugins
+
+Assets/Editor Default Resources*
+Assets/Firebase*
+Assets/GoogleMobileAds*
+Assets/Parse*
+Assets/PlayServicesResolver*
+Assets/Plugins*

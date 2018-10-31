@@ -1,0 +1,9 @@
+*.vs
+*.obj
+Debug
+*.svd
+.*suo
+#*.sln
+*.opendb
+*.sdf
+*.vcxproj.user
