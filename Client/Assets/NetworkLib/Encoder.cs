@@ -120,11 +120,17 @@ public static class Encoder
 
         switch (data.command)
         {
-            case ServerCommands.GET_CARD:
+            case ServerCommands.CLIENT_CONNECTED:
                 packetLength = EncodeBaseNetData(buffer, data);
                 break;
+            case ServerCommands.GET_CARD:
+                packetLength = EncodeUShortNetData(buffer, data);
+                break;
             case ServerCommands.STARTING_NEW_GAME:
-                packetLength = EncodeBaseNetData(buffer, data);
+                packetLength = EncodeUShortNetData(buffer, data);
+                break;
+            case ServerCommands.CARDS_RESPONSE:
+                packetLength = EncodeCardsResponseNetData(buffer, data);
                 break;
             default:
                 break;
@@ -146,11 +152,17 @@ public static class Encoder
         ushort command = GetCommand(buffer, offset);
         switch (command)
         {
-            case ServerCommands.GET_CARD:
+            case ServerCommands.CLIENT_CONNECTED:
                 DecodeBaseNetData(buffer, offset, out data);
                 break;
+            case ServerCommands.GET_CARD:
+                DecodeUShortNetData(buffer, offset, out data);
+                break;
             case ServerCommands.STARTING_NEW_GAME:
-                DecodeBaseNetData(buffer, offset, out data);
+                DecodeUShortNetData(buffer, offset, out data);
+                break;
+            case ServerCommands.CARDS_RESPONSE:
+                DecodeCardsResponseNetData(buffer, offset, out data);
                 break;
             default:
                 break;
@@ -249,6 +261,34 @@ public static class Encoder
         return packetLength;
     }
 
+    private static int EncodeCardsResponseNetData (byte[] buffer, BaseNetData data)
+    {
+        CardsNetData cardsData = (CardsNetData)data;
+
+        ushort nCards = (ushort)cardsData.cards.Count;
+        int packetLength = HEADER_SIZE + SHORT_SIZE * ((15 * nCards) + 1);
+
+        if (buffer.Length < packetLength) return 0;
+        int pos = HEADER_SIZE;
+
+        EncodeUShort(buffer, pos, nCards);
+        ushort cardCount = 0;
+        foreach(ushort[] card in cardsData.cards)
+        {
+            for (ushort i = 0; i < 15; ++i)
+            {
+                EncodeUShort(buffer, pos + (SHORT_SIZE * (i + 1 + (15*cardCount))), card[i]);
+            }
+
+            cardCount++;
+        }
+
+        SetPacketLength(buffer, (ushort)packetLength);
+        SetCommand(buffer, cardsData.command);
+
+        return packetLength;
+    }
+
     #endregion
 
     #region Decoders
@@ -304,9 +344,23 @@ public static class Encoder
         data = new UShortVector2NetData(command, vector);
     }
 
-    private static void DecodeSimulationNetData (byte[] buffer, int offset, out BaseNetData data)
+    private static void DecodeCardsResponseNetData (byte[] buffer, int offset, out BaseNetData data)
     {
-        throw new System.NotImplementedException();
+        int pos = offset + HEADER_SIZE;
+        ushort nCards = DecodeUShort(buffer, pos);
+        List<ushort[]> cardsList = new List<ushort[]>();
+
+        for (ushort i=0; i<nCards; ++i)
+        {
+            ushort[] card = new ushort[15];
+            for (ushort j=0; j<15; ++j)
+            {
+                card[j] = DecodeUShort(buffer, pos + (SHORT_SIZE * ((i * 15 + j)+ 1)));
+            }
+            cardsList.Add(card);
+        }
+        ushort command = GetCommand(buffer, offset);
+        data = new CardsNetData(command, cardsList);
     }
 
     #endregion

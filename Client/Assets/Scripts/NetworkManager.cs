@@ -275,9 +275,9 @@ public class NetworkManager : MonoBehaviour
     /// Inform the server about the desired number of cards.
     /// </summary>
     /// <param name="number">The number of cards</param>
-    public void GetCard ()
+    public void GetCard (ushort nCards)
     {
-        UShortNetData data = new UShortNetData(ServerCommands.GET_CARD,2);
+        UShortNetData data = new UShortNetData(ServerCommands.GET_CARD, nCards);
         SendMessage(data);
     }
 

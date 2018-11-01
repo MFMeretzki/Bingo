@@ -19,13 +19,13 @@ public class Card
         marked = new List<ushort>[3];
         completeLine = new bool[3];
 
-        for (int i = 1; i <= 3; ++i)
+        for (int i = 0; i < 3; ++i)
         {
             notMarked[i] = new List<ushort>();
             marked[i] = new List<ushort>();
             completeLine[i] = false;
 
-            for (int j = 1; j <= 5; ++j)
+            for (int j = 0; j < 5; ++j)
             {
                 notMarked[i].Add(values[j + ((i - 1) * 5)]);
             }
@@ -35,7 +35,7 @@ public class Card
     public ushort EvaluateBall (ushort ball)
     {
         ushort retValue = 0;        // 0 -> nothing special, 1 -> LINE!, 2 -> BINGO!!
-        for (int i = 1; i <= 3; ++i)
+        for (int i = 0; i < 3; ++i)
         {
             if (notMarked[i].Contains(ball))
             {

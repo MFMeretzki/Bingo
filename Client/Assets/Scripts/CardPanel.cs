@@ -13,4 +13,9 @@ public class CardPanel : MonoBehaviour {
 	void Update () {
 		
 	}
+
+    public void SetCardData(ushort[] cardData)
+    {
+
+    }
 }

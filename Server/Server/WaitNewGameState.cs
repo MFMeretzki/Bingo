@@ -67,7 +67,7 @@ public class WaitNewGameState : GameState
 
     private void SendStartingNewGameMsg ()
     {
-        SNGNetData netData = new SNGNetData(ServerCommands.STARTING_NEW_GAME, WAITING_TIMEOUT);
+        UShortNetData netData = new UShortNetData(ServerCommands.STARTING_NEW_GAME, (ushort)(WAITING_TIMEOUT/1000));
         foreach (var p in clientList)
         {
             netWriter.Send(p.Value, netData);
@@ -77,10 +77,10 @@ public class WaitNewGameState : GameState
     private void SendCards (ClientConnection client, ushort nCards)
     {
         List<ushort[]> cardsList = new List<ushort[]>();
-        for (ushort i=1;i<=nCards;++i)
+        for (ushort i=0;i<nCards;++i)
         {
             ushort[] tiles = new ushort[15];
-            for (ushort j=1;j<=15;++j)
+            for (ushort j=0;j<15;++j)
             {
                 tiles[j] = j;
             }
@@ -89,7 +89,6 @@ public class WaitNewGameState : GameState
         }
 
         CardsNetData cardsNetData = new CardsNetData(ServerCommands.CARDS_RESPONSE,cardsList);
-        Console.WriteLine("GET_CARD");
         netWriter.Send(client, cardsNetData);
     }
 }
