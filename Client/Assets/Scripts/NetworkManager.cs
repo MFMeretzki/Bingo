@@ -112,7 +112,7 @@ public class NetworkManager : MonoBehaviour
     /// <summary>
     /// Called when the client gets notified that a new game is starting
     /// </summary>
-    public delegate void GettingCardsAction (List<ushort[]> cards);
+    public delegate void GettingCardsAction (List<Card> cards);
     private static event GettingCardsAction OnGettingCards;
 
     public static void AddOnGettingCards (GettingCardsAction callback)

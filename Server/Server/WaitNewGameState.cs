@@ -10,6 +10,7 @@ public class WaitNewGameState : GameState
 
     private long startTime;
     private Timer timer;
+    private List<string> generatedCards;
 
 
     public WaitNewGameState (NetworkWriter networkWriter, Dictionary<ulong, Player> playerDic, ConcurrentDictionary<ulong, ClientConnection> clientList)
@@ -17,6 +18,7 @@ public class WaitNewGameState : GameState
     {
         actualState = State.WAIT_NEW_GAME;
         players.Clear();
+        generatedCards = new List<string>();
 
         Console.WriteLine("WAIT_NEW_GAME");
         startTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
@@ -95,22 +97,48 @@ public class WaitNewGameState : GameState
 
     private void SendCards (ClientConnection client, ushort nCards)
     {
-        List<ushort[]> cardsList = new List<ushort[]>();
+        List<Card> cards = new List<Card>();
         for (ushort i=0;i<nCards;++i)
         {
-            ushort[] tiles = new ushort[15];
-            for (ushort j=0;j<15;++j)
-            {
-                tiles[j] = (ushort)(j+1);
-            }
-
-            cardsList.Add(tiles);
+            cards.Add(GenerateCard());
         }
 
-        Player player = new Player(cardsList,client);
+        Player player = new Player(cards,client);
         players.Add(client.ID, player);
 
-        CardsNetData cardsNetData = new CardsNetData(ServerCommands.CARDS_RESPONSE,cardsList);
+        CardsNetData cardsNetData = new CardsNetData(ServerCommands.CARDS_RESPONSE,cards);
         netWriter.Send(client, cardsNetData);
+    }
+
+    private Card GenerateCard ()
+    {
+        Card card;
+
+        bool ok = false;
+        int randNum;
+        ushort[] cardData;
+        List<ushort> valuesList;
+        do
+        {
+            cardData = new ushort[15];
+            valuesList = new List<ushort>(baseNumbersList);
+            for (int i=0; i<15; ++i)
+            {
+                randNum = rng.Next(0, MAX_NUMBER - i)+1;
+                cardData[i] = valuesList[randNum];
+                valuesList.RemoveAt(randNum);
+            }
+
+            card = new Card(cardData);
+            string stringCode = card.StringCode();
+            if (!generatedCards.Contains(stringCode))
+            {
+                ok = true;
+                generatedCards.Add(stringCode);
+            }
+
+        } while (!ok);
+
+        return card;
     }
 }

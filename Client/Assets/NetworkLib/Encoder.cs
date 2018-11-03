@@ -317,11 +317,11 @@ public static class Encoder
 
         EncodeUShort(buffer, pos, nCards);
         ushort cardCount = 0;
-        foreach(ushort[] card in cardsData.cards)
+        foreach(Card card in cardsData.cards)
         {
             for (ushort i = 0; i < 15; ++i)
             {
-                EncodeUShort(buffer, pos + (SHORT_SIZE * (i + 1 + (15*cardCount))), card[i]);
+                EncodeUShort(buffer, pos + (SHORT_SIZE * (i + 1 + (15*cardCount))), card.values[i]);
             }
 
             cardCount++;
@@ -401,15 +401,17 @@ public static class Encoder
     {
         int pos = offset + HEADER_SIZE;
         ushort nCards = DecodeUShort(buffer, pos);
-        List<ushort[]> cardsList = new List<ushort[]>();
+        List<Card> cardsList = new List<Card>();
 
+        Card card;
         for (ushort i=0; i<nCards; ++i)
         {
-            ushort[] card = new ushort[15];
+            ushort[] cardData = new ushort[15];
             for (ushort j=0; j<15; ++j)
             {
-                card[j] = DecodeUShort(buffer, pos + (SHORT_SIZE * ((i * 15 + j)+ 1)));
+                cardData[j] = DecodeUShort(buffer, pos + (SHORT_SIZE * ((i * 15 + j)+ 1)));
             }
+            card = new Card(cardData);
             cardsList.Add(card);
         }
         ushort command = GetCommand(buffer, offset);

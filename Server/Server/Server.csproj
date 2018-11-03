@@ -48,6 +48,9 @@
     <Compile Include="..\..\Client\Assets\NetworkLib\BoolNetData.cs">
       <Link>NetworkLib\BoolNetData.cs</Link>
     </Compile>
+    <Compile Include="..\..\Client\Assets\NetworkLib\Card.cs">
+      <Link>NetworkLib\Card.cs</Link>
+    </Compile>
     <Compile Include="..\..\Client\Assets\NetworkLib\CardsNetData.cs">
       <Link>NetworkLib\CardsNetData.cs</Link>
     </Compile>
@@ -78,7 +81,6 @@
     <Compile Include="..\..\Client\Assets\NetworkLib\UShortVector3NetData.cs">
       <Link>NetworkLib\UShortVector3NetData.cs</Link>
     </Compile>
-    <Compile Include="Card.cs" />
     <Compile Include="ClientConnection.cs" />
     <Compile Include="GameLogic.cs" />
     <Compile Include="GameStartedState.cs" />

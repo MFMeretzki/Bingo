@@ -15,23 +15,21 @@ public abstract class GameState
         public List<Card> cards;
         public ClientConnection clientConnection;
 
-        public Player (List<ushort[]> cards, ClientConnection clientConnection)
+        public Player (List<Card> cards, ClientConnection clientConnection)
         {
-            this.cards = new List<Card>();
+            this.cards = cards;
             this.clientConnection = clientConnection;
-
-            foreach (ushort[] cardData in cards)
-            {
-                this.cards.Add(new Card(cardData));
-            }
         }
     }
+
+    protected const ushort MAX_NUMBER = 90;
 
     public State actualState { get; protected set; }
 
     protected NetworkWriter netWriter;
     protected Dictionary<ulong, Player> players;
     protected ConcurrentDictionary<ulong, ClientConnection> clientList;
+    protected List<ushort> baseNumbersList;
     protected object stateLock = new object();
     protected Random rng = new Random();
 
@@ -40,6 +38,11 @@ public abstract class GameState
         netWriter = networkWriter;
         players = playerDic;
         this.clientList = clientList;
+        baseNumbersList = new List<ushort>();
+        for (ushort i=1; i<=MAX_NUMBER; ++i)
+        {
+            baseNumbersList.Add(i);
+        }
     }
 
 

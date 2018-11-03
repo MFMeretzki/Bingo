@@ -24,13 +24,8 @@ public class GameStartedState : GameState
 
     private void InitBalls()
     {
-        List<ushort> ballsList = new List<ushort>();
-        for (ushort i=1; i<=90; ++i)
-        {
-            ballsList.Add(i);
-        }
-
-        //ballsList.Shuffle();
+        List<ushort> ballsList = new List<ushort>(baseNumbersList);
+        ballsList.Shuffle();
         balls = new Queue<ushort>(ballsList);
     }
 

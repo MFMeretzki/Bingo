@@ -98,14 +98,14 @@ public class CardManager : MonoBehaviour
         ballsBoardManager.Clear();
     }
 
-    private void OnGettingCards (List<ushort[]> cards)
+    private void OnGettingCards (List<Card> cards)
     {
         activePanels = cards.Count;
 
         for (int i = 0; i < cards.Count; ++i)
         {
             cardPanel[i].gameObject.SetActive(true);
-            cardPanel[i].SetCardData(cards[i]);
+            cardPanel[i].SetCardData(cards[i].values);
         }
     }
 
