@@ -8,7 +8,7 @@ class Server
 
     public const int BUFFER_SIZE = 1024;
 
-    private readonly string IP = "192.168.1.129";
+    private readonly string IP = "192.168.0.164";
     private const int PORT = 27015;
     private TcpListener tcpListener;
     private NetworkWriter networkWriter;
@@ -30,6 +30,7 @@ class Server
     public void Start (string IP)
     {
         gameLogic = new GameLogic(networkWriter, clientList);
+        OnClientConnection += gameLogic.ClientConnect;
 
         IPAddress ipAddress = IPAddress.Parse(IP);
         try
@@ -49,6 +50,7 @@ class Server
                 client.ClientMessage += ProcessCommand;
                 client.ConnectionError += HandleClientConnectionError;
                 client.StartRead();
+                if (OnClientConnection != null) OnClientConnection(this, client);
             }
         }
         catch (SocketException se)
@@ -63,6 +65,7 @@ class Server
 
     public void Stop ()
     {
+        OnClientConnection -= gameLogic.ClientConnect;
         tcpListener.Stop();
 
         networkWriter.Disconnect();
@@ -86,6 +89,7 @@ class Server
         {
             Console.WriteLine("Client " + client.ID + " disconnected with error: " + error);
             client.Disconnect();
+            gameLogic.ClientDisconnect(client);
         }
     }
 
@@ -101,4 +105,6 @@ class Server
         }
         else return ++nextID;
     }
+
+    public event EventHandler<ClientConnection> OnClientConnection;
 }

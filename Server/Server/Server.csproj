@@ -54,8 +54,8 @@
     <Compile Include="..\..\Client\Assets\NetworkLib\Encoder.cs">
       <Link>NetworkLib\Encoder.cs</Link>
     </Compile>
-    <Compile Include="..\..\Client\Assets\NetworkLib\SercerCommands.cs">
-      <Link>NetworkLib\SercerCommands.cs</Link>
+    <Compile Include="..\..\Client\Assets\NetworkLib\ServerCommands.cs">
+      <Link>NetworkLib\ServerCommands.cs</Link>
     </Compile>
     <Compile Include="..\..\Client\Assets\NetworkLib\SNGNetData.cs">
       <Link>NetworkLib\SNGNetData.cs</Link>
@@ -71,6 +71,12 @@
     </Compile>
     <Compile Include="..\..\Client\Assets\NetworkLib\UShortVector2NetData.cs">
       <Link>NetworkLib\UShortVector2NetData.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Client\Assets\NetworkLib\UShortVector3.cs">
+      <Link>NetworkLib\UShortVector3.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Client\Assets\NetworkLib\UShortVector3NetData.cs">
+      <Link>NetworkLib\UShortVector3NetData.cs</Link>
     </Compile>
     <Compile Include="Card.cs" />
     <Compile Include="ClientConnection.cs" />

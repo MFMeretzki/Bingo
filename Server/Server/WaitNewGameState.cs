@@ -1,27 +1,27 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Threading;
 
 public class WaitNewGameState : GameState
 {
-    private const long WAITING_TIMEOUT = 60000;
+    private const long WAITING_TIMEOUT = 15000;
     private const long TIME_MARGIN = 100;
 
+    private long startTime;
     private Timer timer;
-    private Stopwatch stopwatch = new Stopwatch();
-    private Random rng = new Random();
 
 
-    public WaitNewGameState (NetworkWriter networkWriter, Dictionary<ulong, ClientConnection> playerDic, ConcurrentDictionary<ulong, ClientConnection> clientList)
+    public WaitNewGameState (NetworkWriter networkWriter, Dictionary<ulong, Player> playerDic, ConcurrentDictionary<ulong, ClientConnection> clientList)
         : base(networkWriter, playerDic, clientList)
     {
         actualState = State.WAIT_NEW_GAME;
+        players.Clear();
 
         Console.WriteLine("WAIT_NEW_GAME");
-        //SendStartingNewGameMsg();
-        timer = new Timer(StartNewGame, null, 30000, Timeout.Infinite);
+        startTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+        SendStartingNewGameMsg();
+        timer = new Timer(StartNewGame, null, WAITING_TIMEOUT, Timeout.Infinite);
     }
 
     public override void ProcessCommand (ClientConnection client, BaseNetData data)
@@ -44,13 +44,22 @@ public class WaitNewGameState : GameState
         }
     }
 
+    public override void ClientConnect (ClientConnection client)
+    {
+        lock (stateLock) {
+            Console.WriteLine("Client connected: " + client.ID);
+            long elapsedTime = DateTimeOffset.Now.ToUnixTimeMilliseconds() - startTime;
+            ushort remainingTime = (ushort)((WAITING_TIMEOUT - elapsedTime) / 1000);
+            UShortNetData netData = new UShortNetData(ServerCommands.STARTING_NEW_GAME, remainingTime);
+            netWriter.Send(client, netData);
+        }
+    }
+
     public override bool ClientDisconnect (ClientConnection client)
     {
         lock (stateLock)
         {
             players.Remove(client.ID);
-
-            // TO DO remove player cards
         }
 
         return true;
@@ -58,11 +67,21 @@ public class WaitNewGameState : GameState
 
     private void StartNewGame (object obj)
     {
-        timer.Change(Timeout.Infinite, Timeout.Infinite);
-        timer.Dispose();
-        actualState = State.GAME_STARTED;
+        if (players.Count == 0)
+        {
+            Console.WriteLine("WAIT_NEW_GAME");
+            startTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+            SendStartingNewGameMsg();
+            timer.Change(WAITING_TIMEOUT, Timeout.Infinite);
+        }
+        else
+        {
+            timer.Change(Timeout.Infinite, Timeout.Infinite);
+            timer.Dispose();
+            actualState = State.GAME_STARTED;
 
-        OnChangeState(this, actualState);
+            OnChangeState(this, actualState);
+        }
     }
 
     private void SendStartingNewGameMsg ()
@@ -82,11 +101,14 @@ public class WaitNewGameState : GameState
             ushort[] tiles = new ushort[15];
             for (ushort j=0;j<15;++j)
             {
-                tiles[j] = j;
+                tiles[j] = (ushort)(j+1);
             }
 
             cardsList.Add(tiles);
         }
+
+        Player player = new Player(cardsList,client);
+        players.Add(client.ID, player);
 
         CardsNetData cardsNetData = new CardsNetData(ServerCommands.CARDS_RESPONSE,cardsList);
         netWriter.Send(client, cardsNetData);

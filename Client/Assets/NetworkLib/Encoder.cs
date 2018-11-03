@@ -83,11 +83,26 @@ public static class Encoder
         EncodeUShort(buffer, position + SHORT_SIZE, vec.y);
     }
 
+    public static void EncodeUShortVector3 (byte[] buffer, int position, UShortVector3 vec)
+    {
+        EncodeUShort(buffer, position, vec.x);
+        EncodeUShort(buffer, position + SHORT_SIZE, vec.y);
+        EncodeUShort(buffer, position + SHORT_SIZE * 2, vec.z);
+    }
+
     public static UShortVector2 DecodeUShortVector2 (byte[] buffer, int position)
     {
         ushort x = DecodeUShort(buffer, position);
         ushort y = DecodeUShort(buffer, position + SHORT_SIZE);
         return new UShortVector2(x, y);
+    }
+
+    public static UShortVector3 DecodeUShortVector3 (byte[] buffer, int position)
+    {
+        ushort x = DecodeUShort(buffer, position);
+        ushort y = DecodeUShort(buffer, position + SHORT_SIZE);
+        ushort z = DecodeUShort(buffer, position + SHORT_SIZE * 2);
+        return new UShortVector3(x, y, z);
     }
 
 
@@ -132,6 +147,12 @@ public static class Encoder
             case ServerCommands.CARDS_RESPONSE:
                 packetLength = EncodeCardsResponseNetData(buffer, data);
                 break;
+            case ServerCommands.BALL_REVEALED:
+                packetLength = EncodeUShortVector3NetData(buffer, data);
+                break;
+            case ServerCommands.GAME_BEGAN:
+                packetLength = EncodeBaseNetData(buffer, data);
+                break;
             default:
                 break;
         }
@@ -163,6 +184,12 @@ public static class Encoder
                 break;
             case ServerCommands.CARDS_RESPONSE:
                 DecodeCardsResponseNetData(buffer, offset, out data);
+                break;
+            case ServerCommands.BALL_REVEALED:
+                DecodeUShortVector3NetData(buffer, offset, out data);
+                break;
+            case ServerCommands.GAME_BEGAN:
+                DecodeBaseNetData(buffer, offset, out data);
                 break;
             default:
                 break;
@@ -261,6 +288,23 @@ public static class Encoder
         return packetLength;
     }
 
+    private static int EncodeUShortVector3NetData (byte[] buffer, BaseNetData data)
+    {
+        UShortVector3NetData vData = (UShortVector3NetData)data;
+
+        int packetLength = HEADER_SIZE + SHORT_SIZE * 3;
+
+        if (buffer.Length < packetLength) return 0;
+
+        int pos = HEADER_SIZE;
+        EncodeUShortVector3(buffer, pos, vData.vector);
+
+        SetPacketLength(buffer, (ushort)packetLength);
+        SetCommand(buffer, vData.command);
+
+        return packetLength;
+    }
+
     private static int EncodeCardsResponseNetData (byte[] buffer, BaseNetData data)
     {
         CardsNetData cardsData = (CardsNetData)data;
@@ -342,6 +386,15 @@ public static class Encoder
 
         ushort command = GetCommand(buffer, offset);
         data = new UShortVector2NetData(command, vector);
+    }
+
+    private static void DecodeUShortVector3NetData (byte[] buffer, int offset, out BaseNetData data)
+    {
+        int pos = offset + HEADER_SIZE;
+        UShortVector3 vector = DecodeUShortVector3(buffer, pos);
+
+        ushort command = GetCommand(buffer, offset);
+        data = new UShortVector3NetData(command, vector);
     }
 
     private static void DecodeCardsResponseNetData (byte[] buffer, int offset, out BaseNetData data)

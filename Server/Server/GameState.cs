@@ -10,14 +10,32 @@ public abstract class GameState
         GAME_STARTED
     }
 
+    public struct Player
+    {
+        public List<Card> cards;
+        public ClientConnection clientConnection;
+
+        public Player (List<ushort[]> cards, ClientConnection clientConnection)
+        {
+            this.cards = new List<Card>();
+            this.clientConnection = clientConnection;
+
+            foreach (ushort[] cardData in cards)
+            {
+                this.cards.Add(new Card(cardData));
+            }
+        }
+    }
+
     public State actualState { get; protected set; }
 
     protected NetworkWriter netWriter;
-    protected Dictionary<ulong, ClientConnection> players;
+    protected Dictionary<ulong, Player> players;
     protected ConcurrentDictionary<ulong, ClientConnection> clientList;
     protected object stateLock = new object();
+    protected Random rng = new Random();
 
-    public GameState (NetworkWriter networkWriter, Dictionary<ulong,ClientConnection> playerDic, ConcurrentDictionary<ulong, ClientConnection> clientList)
+    public GameState (NetworkWriter networkWriter, Dictionary<ulong, Player> playerDic, ConcurrentDictionary<ulong, ClientConnection> clientList)
     {
         netWriter = networkWriter;
         players = playerDic;
@@ -39,6 +57,12 @@ public abstract class GameState
     public abstract void ProcessCommand (ClientConnection client, BaseNetData data);
 
     /// <summary>
+    /// Do the proper action when a player enters the game.
+    /// </summary>
+    /// <param name="client">The incoming player connection</param>
+    public abstract void ClientConnect (ClientConnection client);
+
+    /// <summary>
     /// Do the proper action when a player leaves the game.
     /// </summary>
     /// <param name="client">The disconnected player connection</param>
@@ -50,7 +74,7 @@ public abstract class GameState
     {
         foreach (var p in players)
         {
-            netWriter.Send(p.Value, data);
+            netWriter.Send(p.Value.clientConnection, data);
         }
     }
 
@@ -58,7 +82,7 @@ public abstract class GameState
     {
         foreach (var p in players)
         {
-            if (p.Value.ID != id) netWriter.Send(p.Value, data);
+            if (p.Value.clientConnection.ID != id) netWriter.Send(p.Value.clientConnection, data);
         }
     }
 
@@ -66,7 +90,7 @@ public abstract class GameState
     {
         foreach (var p in players)
         {
-            p.Value.ActiveGameID = 0;
+            p.Value.clientConnection.ActiveGameID = 0;
         }
     }
 

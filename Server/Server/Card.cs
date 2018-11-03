@@ -27,7 +27,7 @@ public class Card
 
             for (int j = 0; j < 5; ++j)
             {
-                notMarked[i].Add(values[j + ((i - 1) * 5)]);
+                notMarked[i].Add(values[j + (i * 5)]);
             }
         }
     }
@@ -47,7 +47,7 @@ public class Card
                     retValue = 1;
                 }
 
-                if (completeLine[1]&& completeLine[2]&& completeLine[3])
+                if (completeLine[0] && completeLine[1] && completeLine[2])
                 {
                     retValue = 2;
                 }

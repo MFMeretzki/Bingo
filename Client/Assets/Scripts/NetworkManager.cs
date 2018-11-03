@@ -6,7 +6,7 @@ using UnityEngine;
 public class NetworkManager : MonoBehaviour
 {
 
-    private string IP = "192.168.1.129";
+    private string IP = "192.168.0.164";
     private int PORT = 27015;
     private TcpClient tcpClient = new TcpClient();
     private NetworkStream netStream;
@@ -96,7 +96,7 @@ public class NetworkManager : MonoBehaviour
     /// <summary>
     /// Called when the client gets notified that a new game is starting
     /// </summary>
-    public delegate void StartingNewGameAction (ulong remainingTime);
+    public delegate void StartingNewGameAction (ushort remainingTime);
     private static event StartingNewGameAction OnStartingNewGame;
 
     public static void AddOnStartingNewGame (StartingNewGameAction callback)
@@ -123,6 +123,38 @@ public class NetworkManager : MonoBehaviour
     public static void RemoveOnGettingCards (GettingCardsAction callback)
     {
         OnGettingCards -= callback;
+    }
+
+    /// <summary>
+    /// Called when an error occurs with the client connection.
+    /// </summary>
+    public delegate void BallRevealedAction (UShortVector3 vector);
+    private static event BallRevealedAction OnBallRevealed;
+
+    public static void AddOnBallRevealedListener (BallRevealedAction callback)
+    {
+        OnBallRevealed += callback;
+    }
+
+    public static void RemoveOnBallRevealedListener (BallRevealedAction callback)
+    {
+        OnBallRevealed -= callback;
+    }
+
+    /// <summary>
+    /// Called when an error occurs with the client connection.
+    /// </summary>
+    public delegate void GameBeganAction ();
+    private static event GameBeganAction OnGameBegan;
+
+    public static void AddOnGameBeganListener (GameBeganAction callback)
+    {
+        OnGameBegan += callback;
+    }
+
+    public static void RemoveOnGameBeganListener (GameBeganAction callback)
+    {
+        OnGameBegan -= callback;
     }
 
     /// <summary>
@@ -257,12 +289,19 @@ public class NetworkManager : MonoBehaviour
                 if (OnConnectionError != null) OnConnectionError();
                 break;
             case ServerCommands.STARTING_NEW_GAME:
-                SNGNetData netData = (SNGNetData)data;
-                if (OnStartingNewGame != null) OnStartingNewGame(netData.remainingTime);
+                UShortNetData netData = (UShortNetData)data;
+                if (OnStartingNewGame != null) OnStartingNewGame(netData.value);
                 break;
             case ServerCommands.CARDS_RESPONSE:
                 CardsNetData cardsData = (CardsNetData)data;
                 if (OnGettingCards != null) OnGettingCards(cardsData.cards);
+                break;
+            case ServerCommands.BALL_REVEALED:
+                UShortVector3NetData ballData = (UShortVector3NetData)data;
+                if (OnBallRevealed != null) OnBallRevealed(ballData.vector);
+                break;
+            case ServerCommands.GAME_BEGAN:
+                if (OnGameBegan != null) OnGameBegan();
                 break;
             default:
                 break;

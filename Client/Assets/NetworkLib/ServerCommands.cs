@@ -23,4 +23,14 @@ public class ServerCommands
     /// server -> client starting new game
     /// </summary>
     public const ushort CARDS_RESPONSE = 11;
+
+    /// <summary>
+    /// server -> client ball revealed
+    /// </summary>
+    public const ushort BALL_REVEALED = 12;
+
+    /// <summary>
+    /// server -> client game began
+    /// </summary>
+    public const ushort GAME_BEGAN = 13;
 }

@@ -5,7 +5,7 @@ public class GameLogic
 {
     private NetworkWriter netWriter;
     private GameState gameState;
-    private Dictionary<ulong, ClientConnection> players;
+    private Dictionary<ulong, GameState.Player> players;
     private ConcurrentDictionary<ulong, ClientConnection> clientList;
 
 
@@ -13,9 +13,9 @@ public class GameLogic
     {
         netWriter = networkWriter;
         this.clientList = clientList;
-        players = new Dictionary<ulong, ClientConnection>();
+        players = new Dictionary<ulong, GameState.Player>();
 
-        gameState = new WaitNewGameState(networkWriter, players,clientList);
+        gameState = new WaitNewGameState(networkWriter, players, clientList);
         gameState.ChangeState += OnChangeGameState;
     }
 
@@ -30,6 +30,15 @@ public class GameLogic
     public void ProcessCommand (ClientConnection client, BaseNetData data)
     {
         gameState.ProcessCommand(client, data);
+    }
+
+    /// <summary>
+    /// Connect a player to the game.
+    /// </summary>
+    /// <param name="client">The client connection of the player</param>
+    public void ClientConnect (object sender, ClientConnection client)
+    {
+        gameState.ClientConnect(client);
     }
 
     /// <summary>
