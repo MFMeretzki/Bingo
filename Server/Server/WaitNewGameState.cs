@@ -13,7 +13,7 @@ public class WaitNewGameState : GameState
     private List<string> generatedCards;
 
 
-    public WaitNewGameState (NetworkWriter networkWriter, Dictionary<ulong, Player> playerDic, ConcurrentDictionary<ulong, ClientConnection> clientList)
+    public WaitNewGameState (NetworkWriter networkWriter, Dictionary<ulong, Player> playerDic, ConcurrentDictionary<ulong, ClientData> clientList)
         : base(networkWriter, playerDic, clientList)
     {
         actualState = State.WAIT_NEW_GAME;
@@ -26,7 +26,7 @@ public class WaitNewGameState : GameState
         timer = new Timer(StartNewGame, null, WAITING_TIMEOUT, Timeout.Infinite);
     }
 
-    public override void ProcessCommand (ClientConnection client, BaseNetData data)
+    public override void ProcessCommand (ClientData client, BaseNetData data)
     {
         lock (stateLock)
         {
@@ -34,7 +34,7 @@ public class WaitNewGameState : GameState
             {
                 case ServerCommands.CLIENT_CONNECTED:
                     SNGNetData netData = new SNGNetData(ServerCommands.STARTING_NEW_GAME, WAITING_TIMEOUT);
-                    netWriter.Send(client, netData);
+                    netWriter.Send(client.clientConnection, netData);
                     break;
                 case ServerCommands.GET_CARD:
                     UShortNetData getCardData = (UShortNetData)data;
@@ -46,22 +46,22 @@ public class WaitNewGameState : GameState
         }
     }
 
-    public override void ClientConnect (ClientConnection client)
+    public override void ClientConnect (ClientData client)
     {
         lock (stateLock) {
-            Console.WriteLine("Client connected: " + client.ID);
+            Console.WriteLine("Client connected: " + client.clientConnection.ID);
             long elapsedTime = DateTimeOffset.Now.ToUnixTimeMilliseconds() - startTime;
             ushort remainingTime = (ushort)((WAITING_TIMEOUT - elapsedTime) / 1000);
             UShortNetData netData = new UShortNetData(ServerCommands.STARTING_NEW_GAME, remainingTime);
-            netWriter.Send(client, netData);
+            netWriter.Send(client.clientConnection, netData);
         }
     }
 
-    public override bool ClientDisconnect (ClientConnection client)
+    public override bool ClientDisconnect (ClientData client)
     {
         lock (stateLock)
         {
-            players.Remove(client.ID);
+            players.Remove(client.clientConnection.ID);
         }
 
         return true;
@@ -91,23 +91,25 @@ public class WaitNewGameState : GameState
         UShortNetData netData = new UShortNetData(ServerCommands.STARTING_NEW_GAME, (ushort)(WAITING_TIMEOUT/1000));
         foreach (var p in clientList)
         {
-            netWriter.Send(p.Value, netData);
+            netWriter.Send(p.Value.clientConnection, netData);
         }
     }
 
-    private void SendCards (ClientConnection client, ushort nCards)
+    private void SendCards (ClientData client, ushort nCards)
     {
-        List<Card> cards = new List<Card>();
-        for (ushort i=0;i<nCards;++i)
-        {
-            cards.Add(GenerateCard());
+        if (client.SpendCredit((ushort)(GameLogic.CARD_PRICE * nCards), netWriter)) {
+            List<Card> cards = new List<Card>();
+            for (ushort i = 0; i < nCards; ++i)
+            {
+                cards.Add(GenerateCard());
+            }
+
+            Player player = new Player(cards, client);
+            players.Add(client.clientConnection.ID, player);
+
+            CardsNetData cardsNetData = new CardsNetData(ServerCommands.CARDS_RESPONSE, cards);
+            netWriter.Send(client.clientConnection, cardsNetData);
         }
-
-        Player player = new Player(cards,client);
-        players.Add(client.ID, player);
-
-        CardsNetData cardsNetData = new CardsNetData(ServerCommands.CARDS_RESPONSE,cards);
-        netWriter.Send(client, cardsNetData);
     }
 
     private Card GenerateCard ()
@@ -124,7 +126,7 @@ public class WaitNewGameState : GameState
             valuesList = new List<ushort>(baseNumbersList);
             for (int i=0; i<15; ++i)
             {
-                randNum = rng.Next(0, MAX_NUMBER - i)+1;
+                randNum = rng.Next(0, MAX_NUMBER - (i+1))+1;
                 cardData[i] = valuesList[randNum];
                 valuesList.RemoveAt(randNum);
             }

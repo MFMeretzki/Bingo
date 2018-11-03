@@ -33,4 +33,9 @@ public class ServerCommands
     /// server -> client game began
     /// </summary>
     public const ushort GAME_BEGAN = 13;
+
+    /// <summary>
+    /// server -> client credit changed
+    /// </summary>
+    public const ushort CREDIT = 14;
 }

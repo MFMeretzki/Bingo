@@ -82,6 +82,7 @@
       <Link>NetworkLib\UShortVector3NetData.cs</Link>
     </Compile>
     <Compile Include="ClientConnection.cs" />
+    <Compile Include="ClientData.cs" />
     <Compile Include="GameLogic.cs" />
     <Compile Include="GameStartedState.cs" />
     <Compile Include="GameState.cs" />

@@ -12,7 +12,7 @@ class Server
     private const int PORT = 27015;
     private TcpListener tcpListener;
     private NetworkWriter networkWriter;
-    private ConcurrentDictionary<ulong, ClientConnection> clientList = new ConcurrentDictionary<ulong, ClientConnection>();
+    private ConcurrentDictionary<ulong, ClientData> clientList = new ConcurrentDictionary<ulong, ClientData>();
     private GameLogic gameLogic;
     private ulong nextID = 0;
 
@@ -44,13 +44,14 @@ class Server
 
                 ulong id = GetNextID();
                 ClientConnection client = new ClientConnection(id, tcpClient);
-                clientList.TryAdd(id, client);
+                ClientData clientData = new ClientData(client, networkWriter);
+                clientList.TryAdd(id, clientData);
 
                 //subscribe to the client message event
                 client.ClientMessage += ProcessCommand;
                 client.ConnectionError += HandleClientConnectionError;
                 client.StartRead();
-                if (OnClientConnection != null) OnClientConnection(this, client);
+                if (OnClientConnection != null) OnClientConnection(this, clientData);
             }
         }
         catch (SocketException se)
@@ -69,9 +70,9 @@ class Server
         tcpListener.Stop();
 
         networkWriter.Disconnect();
-        foreach (ClientConnection client in clientList.Values)
+        foreach (ClientData client in clientList.Values)
         {
-            client.Disconnect();
+            client.clientConnection.Disconnect();
         }
     }
 
@@ -79,17 +80,21 @@ class Server
     private void ProcessCommand (Object sender, BaseNetData data)
     {
         ClientConnection client = (ClientConnection)sender;
-        gameLogic.ProcessCommand(client, data);
+        ClientData clientData;
+        if (clientList.TryGetValue(client.ID, out clientData))
+        {
+            gameLogic.ProcessCommand(clientData, data);
+        }
     }
 
     private void HandleClientConnectionError (Object sender, string error)
     {
         ClientConnection client = (ClientConnection)sender;
-        if (clientList.TryRemove(client.ID, out client))
-        {
-            Console.WriteLine("Client " + client.ID + " disconnected with error: " + error);
-            client.Disconnect();
-            gameLogic.ClientDisconnect(client);
+        ClientData clientData;
+        if (clientList.TryGetValue(client.ID,out clientData)) {
+            Console.WriteLine("Client " + clientData.clientConnection.ID + " disconnected with error: " + error);
+            clientData.clientConnection.Disconnect();
+            gameLogic.ClientDisconnect(clientData);
         }
     }
 
@@ -106,5 +111,5 @@ class Server
         else return ++nextID;
     }
 
-    public event EventHandler<ClientConnection> OnClientConnection;
+    public event EventHandler<ClientData> OnClientConnection;
 }

@@ -158,6 +158,22 @@ public class NetworkManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Called when credit changed.
+    /// </summary>
+    public delegate void CreditChangedAction (ushort credit);
+    private static event CreditChangedAction OnCreditChanged;
+
+    public static void AddOnCreditChangedListener (CreditChangedAction callback)
+    {
+        OnCreditChanged += callback;
+    }
+
+    public static void RemoveOnCreditChangedListener (CreditChangedAction callback)
+    {
+        OnCreditChanged -= callback;
+    }
+
+    /// <summary>
     /// Called when an error occurs with the client connection.
     /// </summary>
     public delegate void ConnectionErrorAction ();
@@ -302,6 +318,10 @@ public class NetworkManager : MonoBehaviour
                 break;
             case ServerCommands.GAME_BEGAN:
                 if (OnGameBegan != null) OnGameBegan();
+                break;
+            case ServerCommands.CREDIT:
+                UShortNetData creditData = (UShortNetData)data;
+                if (OnCreditChanged != null) OnCreditChanged(creditData.value);
                 break;
             default:
                 break;

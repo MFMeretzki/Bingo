@@ -11520,6 +11520,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1935139668}
   - component: {fileID: 1935139669}
+  - component: {fileID: 1935139670}
   m_Layer: 5
   m_Name: CreditPanel
   m_TagString: Untagged
@@ -11553,6 +11554,18 @@ CanvasRenderer:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1935139667}
+--- !u!114 &1935139670
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1935139667}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 99a795d65a4699d4994c91fce1c19454, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  creditText: {fileID: 14299724}
 --- !u!1 &1961620464
 GameObject:
   m_ObjectHideFlags: 0

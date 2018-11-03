@@ -13,12 +13,12 @@ public abstract class GameState
     public struct Player
     {
         public List<Card> cards;
-        public ClientConnection clientConnection;
+        public ClientData clientData;
 
-        public Player (List<Card> cards, ClientConnection clientConnection)
+        public Player (List<Card> cards, ClientData clientData)
         {
             this.cards = cards;
-            this.clientConnection = clientConnection;
+            this.clientData = clientData;
         }
     }
 
@@ -28,12 +28,12 @@ public abstract class GameState
 
     protected NetworkWriter netWriter;
     protected Dictionary<ulong, Player> players;
-    protected ConcurrentDictionary<ulong, ClientConnection> clientList;
+    protected ConcurrentDictionary<ulong, ClientData> clientList;
     protected List<ushort> baseNumbersList;
     protected object stateLock = new object();
     protected Random rng = new Random();
 
-    public GameState (NetworkWriter networkWriter, Dictionary<ulong, Player> playerDic, ConcurrentDictionary<ulong, ClientConnection> clientList)
+    public GameState (NetworkWriter networkWriter, Dictionary<ulong, Player> playerDic, ConcurrentDictionary<ulong, ClientData> clientList)
     {
         netWriter = networkWriter;
         players = playerDic;
@@ -57,27 +57,27 @@ public abstract class GameState
     /// </summary>
     /// <param name="client">The connection of the client that sent the command</param>
     /// <param name="data">The related data to the command</param>
-    public abstract void ProcessCommand (ClientConnection client, BaseNetData data);
+    public abstract void ProcessCommand (ClientData client, BaseNetData data);
 
     /// <summary>
     /// Do the proper action when a player enters the game.
     /// </summary>
     /// <param name="client">The incoming player connection</param>
-    public abstract void ClientConnect (ClientConnection client);
+    public abstract void ClientConnect (ClientData client);
 
     /// <summary>
     /// Do the proper action when a player leaves the game.
     /// </summary>
     /// <param name="client">The disconnected player connection</param>
     /// <returns><code>true</code> if the game should be removed from active games, <code>false</code> otherwise</returns>
-    public abstract bool ClientDisconnect (ClientConnection client);
+    public abstract bool ClientDisconnect (ClientData client);
 
 
     protected void SendToAllPlayers (BaseNetData data)
     {
         foreach (var p in players)
         {
-            netWriter.Send(p.Value.clientConnection, data);
+            netWriter.Send(p.Value.clientData.clientConnection, data);
         }
     }
 
@@ -85,7 +85,7 @@ public abstract class GameState
     {
         foreach (var p in players)
         {
-            if (p.Value.clientConnection.ID != id) netWriter.Send(p.Value.clientConnection, data);
+            if (p.Value.clientData.clientConnection.ID != id) netWriter.Send(p.Value.clientData.clientConnection, data);
         }
     }
 
@@ -93,7 +93,7 @@ public abstract class GameState
     {
         foreach (var p in players)
         {
-            p.Value.clientConnection.ActiveGameID = 0;
+            p.Value.clientData.clientConnection.ActiveGameID = 0;
         }
     }
 

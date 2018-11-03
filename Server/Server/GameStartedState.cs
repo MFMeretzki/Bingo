@@ -11,7 +11,7 @@ public class GameStartedState : GameState
     private bool lineReached = false;
     private bool bingoReached = false;
 
-    public GameStartedState (NetworkWriter networkWriter, Dictionary<ulong, Player> playerDic, ConcurrentDictionary<ulong, ClientConnection> clientList)
+    public GameStartedState (NetworkWriter networkWriter, Dictionary<ulong, Player> playerDic, ConcurrentDictionary<ulong, ClientData> clientList)
         : base(networkWriter, playerDic, clientList)
     {
         actualState = State.GAME_STARTED;
@@ -29,14 +29,14 @@ public class GameStartedState : GameState
         balls = new Queue<ushort>(ballsList);
     }
 
-    public override void ProcessCommand (ClientConnection client, BaseNetData data) { }
-    public override void ClientConnect (ClientConnection client) { }
+    public override void ProcessCommand (ClientData client, BaseNetData data) { }
+    public override void ClientConnect (ClientData client) { }
 
-    public override bool ClientDisconnect (ClientConnection client)
+    public override bool ClientDisconnect (ClientData client)
     {
         lock (stateLock)
         {
-            players.Remove(client.ID);
+            players.Remove(client.clientConnection.ID);
         }
 
         return true;
@@ -54,6 +54,7 @@ public class GameStartedState : GameState
         }
         else
         {
+            List<Player> winners = new List<Player>();
             ushort ball = balls.Dequeue();
 
             ushort lines = 0, bingos = 0, result;
@@ -66,9 +67,11 @@ public class GameStartedState : GameState
                     switch (result)
                     {
                         case 1:
+                            winners.Add(p.Value);
                             lines++;
                             break;
                         case 2:
+                            winners.Add(p.Value);
                             bingos++;
                             break;
                         default:
@@ -78,14 +81,26 @@ public class GameStartedState : GameState
             }
 
             UShortVector3 vector;
-            if (bingos > 0 && !bingoReached)
+            if (bingos > 0 && !bingoReached && winners.Count > 0)
             {
                 vector = new UShortVector3(ball, 0, bingos);
+
+                ushort credit = (ushort)(GameLogic.BINGO_REWARD / winners.Count);
+                foreach (Player p in winners)
+                {
+                    p.clientData.EarnCredit(credit, netWriter);
+                }
                 bingoReached = true;
             }
-            else if (lines > 0 && !lineReached)
+            else if (lines > 0 && !lineReached && winners.Count > 0)
             {
                 vector = new UShortVector3(ball, lines, 0);
+
+                ushort credit = (ushort)(GameLogic.LINE_REWARD / winners.Count);
+                foreach (Player p in winners)
+                {
+                    p.clientData.EarnCredit(credit, netWriter);
+                }
                 lineReached = true;
             }
             else

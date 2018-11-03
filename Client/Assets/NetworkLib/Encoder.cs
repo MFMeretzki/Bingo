@@ -153,6 +153,9 @@ public static class Encoder
             case ServerCommands.GAME_BEGAN:
                 packetLength = EncodeBaseNetData(buffer, data);
                 break;
+            case ServerCommands.CREDIT:
+                packetLength = EncodeUShortNetData(buffer, data);
+                break;
             default:
                 break;
         }
@@ -190,6 +193,9 @@ public static class Encoder
                 break;
             case ServerCommands.GAME_BEGAN:
                 DecodeBaseNetData(buffer, offset, out data);
+                break;
+            case ServerCommands.CREDIT:
+                DecodeUShortNetData(buffer, offset, out data);
                 break;
             default:
                 break;

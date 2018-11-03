@@ -3,13 +3,17 @@ using System.Collections.Concurrent;
 
 public class GameLogic
 {
+    public const ushort CARD_PRICE = 5;
+    public const ushort LINE_REWARD = 10;
+    public const ushort BINGO_REWARD = 20;
+
     private NetworkWriter netWriter;
     private GameState gameState;
     private Dictionary<ulong, GameState.Player> players;
-    private ConcurrentDictionary<ulong, ClientConnection> clientList;
+    private ConcurrentDictionary<ulong, ClientData> clientList;
 
 
-    public GameLogic (NetworkWriter networkWriter, ConcurrentDictionary<ulong, ClientConnection> clientList)
+    public GameLogic (NetworkWriter networkWriter, ConcurrentDictionary<ulong, ClientData> clientList)
     {
         netWriter = networkWriter;
         this.clientList = clientList;
@@ -27,7 +31,7 @@ public class GameLogic
     }
 
 
-    public void ProcessCommand (ClientConnection client, BaseNetData data)
+    public void ProcessCommand (ClientData client, BaseNetData data)
     {
         gameState.ProcessCommand(client, data);
     }
@@ -36,7 +40,7 @@ public class GameLogic
     /// Connect a player to the game.
     /// </summary>
     /// <param name="client">The client connection of the player</param>
-    public void ClientConnect (object sender, ClientConnection client)
+    public void ClientConnect (object sender, ClientData client)
     {
         gameState.ClientConnect(client);
     }
@@ -46,7 +50,7 @@ public class GameLogic
     /// </summary>
     /// <param name="client">The client connection of the player</param>
     /// <returns><code>true</code> if the game should be removed from active games, <code>false</code> otherwise</returns>
-    public bool ClientDisconnect (ClientConnection client)
+    public bool ClientDisconnect (ClientData client)
     {
         return gameState.ClientDisconnect(client);
     }
