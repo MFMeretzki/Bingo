@@ -6,7 +6,7 @@ using UnityEngine;
 public class NetworkManager : MonoBehaviour
 {
 
-    private string IP = "192.168.0.164";
+    private string IP = "192.168.1.34";
     private int PORT = 27015;
     private TcpClient tcpClient = new TcpClient();
     private NetworkStream netStream;

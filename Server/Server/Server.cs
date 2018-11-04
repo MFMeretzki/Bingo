@@ -8,7 +8,7 @@ class Server
 
     public const int BUFFER_SIZE = 1024;
 
-    private readonly string IP = "192.168.0.164";
+    private readonly string IP = "192.168.1.34";
     private const int PORT = 27015;
     private TcpListener tcpListener;
     private NetworkWriter networkWriter;
